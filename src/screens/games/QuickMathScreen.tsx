@@ -58,9 +58,10 @@ export const QuickMathScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }) 
     setQuestion(buildQuestion());
     timerAnim.setValue(1);
     stopTimer();
+    const duration = Math.max(650, TIME_MS - scoreRef.current * 45);
     timerRef.current = Animated.timing(timerAnim, {
       toValue: 0,
-      duration: TIME_MS,
+      duration: duration,
       useNativeDriver: false,
     });
     timerRef.current.start(({ finished }) => {

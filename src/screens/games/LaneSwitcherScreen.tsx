@@ -57,16 +57,16 @@ export const LaneSwitcherScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
       setObstacles((obs) => {
         const next = obs
           .map((o) => ({ ...o, y: o.y + 4 }))
-          .filter((o) => o.y < 520);
+          .filter((o) => o.y < 500);
         const hit = next.some(
-          (o) => o.lane === playerLane && o.y > 400 && o.y < 460
+          (o) => o.lane === playerLane && o.y > 380 && o.y < 442
         );
         if (hit) {
           endGame();
           return obs;
         }
         next.forEach((o) => {
-          if (o.y > 460 && !passedIds.current.has(o.id)) {
+          if (o.y > 442 && !passedIds.current.has(o.id)) {
             passedIds.current.add(o.id);
             scoreRef.current += 1;
             setScore(scoreRef.current);
@@ -99,23 +99,25 @@ export const LaneSwitcherScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
   return (
     <GameShell title="ŞERİT DEĞİŞTİR" score={score} accent="#8B5CF6" onBack={onBack}>
       <View style={styles.area}>
-        <View style={styles.lanes}>
-          {[0, 1, 2].map((lane) => (
-            <View key={lane} style={[styles.lane, { width: laneW }]}>
-              <View style={styles.laneLine} />
-              {obstacles
-                .filter((o) => o.lane === lane)
-                .map((o) => (
-                  <View key={o.id} style={[styles.obstacle, { top: o.y }]} />
-                ))}
-            </View>
-          ))}
-          <View
-            style={[
-              styles.player,
-              { left: playerLane * laneW + laneW / 2 - 16, shadowColor: '#8B5CF6' },
-            ]}
-          />
+        <View style={styles.lanesWrapper}>
+          <View style={styles.lanes}>
+            {[0, 1, 2].map((lane) => (
+              <View key={lane} style={[styles.lane, { width: laneW }]}>
+                <View style={styles.laneLine} />
+                {obstacles
+                  .filter((o) => o.lane === lane)
+                  .map((o) => (
+                    <View key={o.id} style={[styles.obstacle, { top: o.y }]} />
+                  ))}
+              </View>
+            ))}
+            <View
+              style={[
+                styles.player,
+                { left: playerLane * laneW + laneW / 2 - 16, shadowColor: '#8B5CF6' },
+              ]}
+            />
+          </View>
         </View>
         <View style={styles.controls}>
           <Pressable style={styles.controlBtn} onPress={() => handlePress('left')}>
@@ -152,13 +154,18 @@ export const LaneSwitcherScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
 };
 
 const styles = StyleSheet.create({
-  area: { flex: 1, backgroundColor: '#0A0818' },
+  area: { flex: 1, backgroundColor: '#0A0818', justifyContent: 'center' },
+  lanesWrapper: {
+    alignItems: 'center',
+    width: '100%',
+  },
   lanes: {
-    flex: 1,
+    height: 480,
+    width: SW - 80,
     flexDirection: 'row',
-    justifyContent: 'center',
     position: 'relative',
-    marginTop: 10,
+    borderRightWidth: 1,
+    borderColor: colors.glassBorder,
   },
   lane: {
     height: '100%',

@@ -41,12 +41,13 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
 
   const spawnHoop = (existing: Hoop[]) => {
     idRef.current += 1;
+    // Spawn hoops offscreen on the right so they scroll in naturally
     return [
       ...existing,
       {
         id: idRef.current,
-        x: AREA_W - 80 + Math.random() * 40,
-        y: 60 + Math.random() * (AREA_H - 160),
+        x: AREA_W + Math.random() * 40,
+        y: 40 + Math.random() * (AREA_H - 140),
         passed: false,
       },
     ];
@@ -72,24 +73,20 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
         }
         return ny;
       });
-      setBallX((x) => {
-        const nx = x + 1.2;
-        if (nx > AREA_W - 40) {
-          endGame();
-          return x;
-        }
-        return nx;
-      });
       setHoops((hs) => {
-        let list = hs.map((h) => ({ ...h, x: h.x - 1.2 })).filter((h) => h.x > -60);
+        const speed = 2.2 + scoreRef.current * 0.08; // progressive scroll speed
+        let list = hs.map((h) => ({ ...h, x: h.x - speed })).filter((h) => h.x > -80);
         if (list.length < 2) list = spawnHoop(list);
         list.forEach((h) => {
+          // Check collision with the center of the hoop rim
+          // The rim width is 44px (center is x+22). The backboard is 48px, rim overlap is -4px, rim height is 44px (center is y+66)
+          const rimCenterX = h.x + 22;
+          const rimCenterY = h.y + 66;
+          
           if (
             !h.passed &&
-            ballX > h.x - 10 &&
-            ballX < h.x + 10 &&
-            ballY > h.y - 20 &&
-            ballY < h.y + 20
+            Math.abs(60 - rimCenterX) < 18 &&
+            Math.abs(ballY - rimCenterY) < 22
           ) {
             h.passed = true;
             scoreRef.current += 1;
@@ -104,7 +101,7 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
-  }, [phase, ballX, ballY]);
+  }, [phase, ballY]);
 
   const startGame = () => {
     resetScore();

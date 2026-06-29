@@ -103,7 +103,7 @@ export const PerfectLockScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }
     <GameShell title="TAM ÜSTÜNE" score={score} accent="#00E5A0" onBack={onBack}>
       <Pressable style={styles.area} onPress={handleTap}>
         <View style={styles.lockOuter}>
-          <View style={[styles.targetArc, { transform: [{ rotate: `${targetAngle - 90}deg` }] }]}>
+          <View style={[styles.targetArc, { transform: [{ rotate: `${targetAngle}deg` }] }]}>
             <View style={styles.targetFill} />
           </View>
           <View style={styles.lockInner} />
@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(0,229,160,0.06)',
+    position: 'relative',
   },
   targetArc: {
     position: 'absolute',
@@ -181,15 +182,14 @@ const styles = StyleSheet.create({
   },
   handWrap: {
     position: 'absolute',
-    width: 4,
-    height: LOCK / 2 - 14,
+    width: LOCK,
+    height: LOCK,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    top: LOCK / 2 - (LOCK / 2 - 14),
   },
   hand: {
     width: 4,
     height: LOCK / 2 - 14,
+    marginTop: 14, // Starts 14px down, matching the top position of targetFill
     backgroundColor: '#00D4FF',
     borderRadius: 2,
     shadowColor: '#00D4FF',
@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F6FF',
     borderWidth: 2,
     borderColor: '#00E5A0',
+    zIndex: 5,
   },
   hint: {
     marginTop: 28,

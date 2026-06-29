@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,8 +7,9 @@ import {
   SafeAreaView,
   Platform,
   useWindowDimensions,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
-import { DynamicIsland } from '../components/DynamicIsland';
 import { GradientText } from '../components/GradientText';
 import { AmbientBackground } from '../components/AmbientBackground';
 import { GameGridCard } from '../components/game/GameGridCard';
@@ -36,7 +37,6 @@ function HomeContent({
     <>
       <View style={styles.heroSection}>
         <GradientText size={26}>Eternal Game Hub</GradientText>
-        <Text style={styles.tagline}>7 oyun · Rekor kır · Dostlarınla yarış</Text>
         <View style={styles.heroDivider}>
           <View style={styles.heroLine} />
           <Text style={styles.heroStar}>✦</Text>
@@ -60,22 +60,6 @@ function HomeContent({
           </View>
         ))}
       </View>
-
-      <View style={styles.leaderboard}>
-        <Text style={styles.leaderTitle}>🏆 Lider Tablosu</Text>
-        {GAMES.map((game, i) => (
-          <View
-            key={game.scoreKey}
-            style={[styles.leaderRow, i < GAMES.length - 1 && styles.leaderBorder]}
-          >
-            <Text style={styles.leaderEmoji}>{game.emoji}</Text>
-            <Text style={styles.leaderName}>{game.title}</Text>
-            <Text style={[styles.leaderScore, { color: game.accent }]}>
-              {highScores[game.scoreKey]}
-            </Text>
-          </View>
-        ))}
-      </View>
     </>
   );
 }
@@ -84,6 +68,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
   const bodyScroll = useBodyScrollLayout();
   const { width } = useWindowDimensions();
   const cardSize = Math.floor((width - H_PAD * 2 - GRID_GAP * (COLS - 1)) / COLS);
+  const [scoresVisible, setScoresVisible] = useState(false);
 
   useEffect(() => {
     loadWebFonts();
@@ -97,7 +82,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
     <SafeAreaView style={[styles.safeArea, bodyScroll && styles.safeAreaBodyScroll]}>
       <AmbientBackground />
       <View style={[styles.container, bodyScroll && styles.containerBodyScroll]}>
-        <DynamicIsland title="ETERNAL GAME HUB" subtitle="Arcade Collection" badge="v1.0" />
+        
+        {/* Top Navbar */}
+        <View style={styles.navbar}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.infinityLogo}>∞</Text>
+            <Text style={styles.logoText}>ETERNAL</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.trophyButton} 
+            onPress={() => setScoresVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.trophyIcon}>🏆</Text>
+          </TouchableOpacity>
+        </View>
 
         {bodyScroll ? (
           <View style={styles.scrollContent}>{content}</View>
@@ -111,6 +110,35 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
           </ScrollView>
         )}
       </View>
+
+      {/* Leaderboard Modal */}
+      <Modal visible={scoresVisible} transparent animationType="fade" onRequestClose={() => setScoresVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🏆 Lider Tablosu</Text>
+              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setScoresVisible(false)}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.leaderboardScroll} showsVerticalScrollIndicator={false}>
+              {GAMES.map((game, i) => (
+                <View
+                  key={game.scoreKey}
+                  style={[styles.leaderRow, i < GAMES.length - 1 && styles.leaderBorder]}
+                >
+                  <Text style={styles.leaderEmoji}>{game.emoji}</Text>
+                  <Text style={styles.leaderName}>{game.title}</Text>
+                  <Text style={[styles.leaderScore, { color: game.accent }]}>
+                    {highScores[game.scoreKey]}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -134,6 +162,50 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingBottom: 32,
   },
+  navbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.glassBorder,
+    marginBottom: 12,
+    paddingTop: Platform.OS === 'ios' ? 10 : 16,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infinityLogo: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#00D4FF', // Beautiful neon blue infinity logo
+    marginRight: 8,
+    lineHeight: 32,
+    marginTop: -4,
+  },
+  logoText: {
+    fontFamily: fonts.display,
+    fontSize: 14,
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: 1.5,
+  },
+  trophyButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceSolid,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({ web: { cursor: 'pointer' } }),
+  },
+  trophyIcon: {
+    fontSize: 18,
+  },
   scrollView: {
     flex: 1,
     width: '100%',
@@ -148,23 +220,15 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 12,
     paddingHorizontal: 10,
     width: '100%',
-  },
-  tagline: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginTop: 10,
-    textAlign: 'center',
   },
   heroDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
-    width: '70%',
+    marginTop: 10,
+    width: '60%',
   },
   heroLine: {
     flex: 1,
@@ -174,7 +238,7 @@ const styles = StyleSheet.create({
   },
   heroStar: {
     color: colors.accentSoft,
-    fontSize: 12,
+    fontSize: 10,
     marginHorizontal: 5,
   },
   sectionLabel: {
@@ -190,51 +254,84 @@ const styles = StyleSheet.create({
   },
   grid: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   gridRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: GRID_GAP,
   },
-  leaderboard: {
-    width: '100%',
-    backgroundColor: colors.surfaceSolid,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    borderRadius: 22,
-    padding: 16,
-    marginBottom: 8,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  leaderTitle: {
-    fontFamily: fonts.display,
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    letterSpacing: 1,
-    marginBottom: 12,
-    paddingBottom: 10,
+  modalContent: {
+    width: '85%',
+    maxWidth: 360,
+    backgroundColor: 'rgba(9,15,32,0.98)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.glassBorderBright,
+    padding: 20,
+    shadowColor: '#00D4FF',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.glassBorder,
+    paddingBottom: 12,
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontFamily: fonts.display,
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  modalCloseButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({ web: { cursor: 'pointer' } }),
+  },
+  modalCloseText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  leaderboardScroll: {
+    maxHeight: 320,
   },
   leaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   leaderBorder: {
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.04)',
   },
   leaderEmoji: {
-    fontSize: 16,
-    width: 28,
+    fontSize: 18,
+    width: 32,
   },
   leaderName: {
     flex: 1,
     fontFamily: fonts.body,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textSecondary,
   },
   leaderScore: {

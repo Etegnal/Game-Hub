@@ -29,14 +29,10 @@ export const ZigZagScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }) => 
 
   const pathPoints = () => {
     const pts: { x: number; y: number }[] = [];
-    let x = PATH_W / 2;
-    let y = 0;
-    let d = 1;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 1000; i++) {
+      const y = i * (SEG / 2);
+      const x = PATH_W / 2 + Math.sin(y / 70) * (PATH_W / 2 - 32);
       pts.push({ x, y });
-      y += SEG;
-      x += d * SEG;
-      d *= -1;
     }
     return pts;
   };
@@ -58,15 +54,18 @@ export const ZigZagScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }) => 
       const dt = (now - last) / 16;
       last = now;
       setBall((b) => {
-        const nx = b.x + dirRef.current * 2.8 * dt;
-        const ny = b.y + 2.5 * dt;
-        const corridor = PATH_W / 2 + Math.sin(ny / SEG) * (PATH_W / 2 - 24);
-        if (Math.abs(nx - corridor) > 28 || ny > 520) {
+        const nx = b.x + dirRef.current * 3.0 * dt;
+        const ny = b.y + 2.6 * dt;
+        const corridor = PATH_W / 2 + Math.sin(ny / 70) * (PATH_W / 2 - 32);
+        
+        if (Math.abs(nx - corridor) > 28) {
           endGame();
           return b;
         }
-        if (Math.floor(ny / SEG) > scoreRef.current) {
-          scoreRef.current = Math.floor(ny / SEG);
+        
+        const currentScore = Math.floor(ny / 120);
+        if (currentScore > scoreRef.current) {
+          scoreRef.current = currentScore;
           setScore(scoreRef.current);
         }
         return { x: nx, y: ny };
@@ -92,19 +91,22 @@ export const ZigZagScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }) => 
     dirRef.current *= -1;
   };
 
+  // Only render path segments that are visible on the screen
+  const visiblePoints = points.filter((p) => Math.abs(p.y - ball.y) < 320);
+
   return (
     <GameShell title="ZORLU DÖNÜŞ" score={score} accent="#F59E0B" onBack={onBack}>
       <Pressable style={styles.area} onPress={handleTap}>
         <View style={[styles.pathBox, { width: PATH_W }]}>
-          {points.map((p, i) => (
+          {visiblePoints.map((p, i) => (
             <View
               key={i}
               style={[
                 styles.pathSeg,
                 {
                   left: p.x - 12,
-                  top: p.y,
-                  backgroundColor: i % 2 === 0 ? '#F59E0B55' : '#FBBF2455',
+                  top: p.y - ball.y + 160, // Scroll path segments
+                  backgroundColor: Math.floor(p.y / SEG) % 2 === 0 ? '#F59E0B55' : '#FBBF2455',
                 },
               ]}
             />
@@ -112,7 +114,7 @@ export const ZigZagScreen: React.FC<Props> = ({ onBack, onUpdateHighScore }) => 
           <View
             style={[
               styles.ball,
-              { left: ball.x - BALL / 2, top: ball.y, shadowColor: '#FBBF24' },
+              { left: ball.x - BALL / 2, top: 160, shadowColor: '#FBBF24' }, // Lock ball vertically
             ]}
           />
         </View>

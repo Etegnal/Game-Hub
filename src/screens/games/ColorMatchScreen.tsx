@@ -48,11 +48,21 @@ export const ColorMatchScreen: React.FC<Props> = ({ onBack, onUpdateHighScore })
     spawnBall();
     const loop = () => {
       setBallY((y) => {
-        const ny = y + 3.5;
-        if (ny >= WHEEL / 2 - 10) {
-          const segment = Math.floor(((rotation % 360) + 360) % 360 / 90);
-          const bottomSegment = (4 - segment) % 4;
-          if (bottomSegment !== ballColorIdx) {
+        const speed = 3.6 + scoreRef.current * 0.12; // progressive speed
+        const ny = y + speed;
+        if (ny >= 110) {
+          const step = Math.round((rotation % 360) / 90) % 4;
+          const normalizedStep = (step + 4) % 4;
+          
+          // Quadrants at top-left:
+          // 0deg: q0 (Blue, index 0)
+          // 90deg (clockwise): q2 (Pink, index 2, rotated from bottom-left)
+          // 180deg: q3 (Green, index 3, rotated from bottom-right)
+          // 270deg: q1 (Yellow, index 1, rotated from top-right)
+          const topLeftColors = [0, 2, 3, 1];
+          const activeColorIdx = topLeftColors[normalizedStep];
+
+          if (activeColorIdx !== ballColorIdx) {
             endGame();
             return y;
           }
@@ -86,22 +96,24 @@ export const ColorMatchScreen: React.FC<Props> = ({ onBack, onUpdateHighScore })
   return (
     <GameShell title="RENK EŞLE" score={score} accent="#22D3EE" onBack={onBack}>
       <Pressable style={styles.area} onPress={handleTap}>
-        <View
-          style={[
-            styles.fallingBall,
-            {
-              backgroundColor: QUAD[ballColorIdx].color,
-              top: 40 + ballY,
-              shadowColor: QUAD[ballColorIdx].color,
-            },
-          ]}
-        />
-        <View style={[styles.wheel, { transform: [{ rotate: `${rotation}deg` }] }]}>
-          <View style={[styles.quad, styles.q0, { backgroundColor: QUAD[0].color }]} />
-          <View style={[styles.quad, styles.q1, { backgroundColor: QUAD[1].color }]} />
-          <View style={[styles.quad, styles.q2, { backgroundColor: QUAD[2].color }]} />
-          <View style={[styles.quad, styles.q3, { backgroundColor: QUAD[3].color }]} />
-          <View style={styles.wheelCore} />
+        <View style={styles.gameContainer}>
+          <View
+            style={[
+              styles.fallingBall,
+              {
+                backgroundColor: QUAD[ballColorIdx].color,
+                top: ballY,
+                shadowColor: QUAD[ballColorIdx].color,
+              },
+            ]}
+          />
+          <View style={[styles.wheel, { transform: [{ rotate: `${rotation}deg` }] }]}>
+            <View style={[styles.quad, styles.q0, { backgroundColor: QUAD[0].color }]} />
+            <View style={[styles.quad, styles.q1, { backgroundColor: QUAD[1].color }]} />
+            <View style={[styles.quad, styles.q2, { backgroundColor: QUAD[2].color }]} />
+            <View style={[styles.quad, styles.q3, { backgroundColor: QUAD[3].color }]} />
+            <View style={styles.wheelCore} />
+          </View>
         </View>
         <Text style={styles.hint}>Dokun → çarkı döndür · Renkleri eşle</Text>
       </Pressable>
@@ -110,7 +122,7 @@ export const ColorMatchScreen: React.FC<Props> = ({ onBack, onUpdateHighScore })
         <StartOverlay
           emoji="🎨"
           title="Renk Eşle"
-          instructions="Düşen topun rengiyle alttaki çeyrek eşleşmeli. Dokunarak 90° döndür."
+          instructions="Düşen topun rengiyle çarkın denk gelen çeyreği eşleşmeli. Dokunarak 90° döndür."
           highScore={highScore}
           accent="#22D3EE"
           onStart={startGame}
@@ -137,8 +149,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#081018',
   },
+  gameContainer: {
+    width: 260,
+    height: 360,
+    position: 'relative',
+  },
   fallingBall: {
     position: 'absolute',
+    left: 61, // Centered horizontally on the top-left quadrant of the wheel
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -149,6 +167,9 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   wheel: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20, // Centered horizontally in the 260px container (260 - 220) / 2 = 20
     width: WHEEL,
     height: WHEEL,
     borderRadius: WHEEL / 2,

@@ -13,6 +13,13 @@ interface GameGridCardProps {
 
 export const GameGridCard: React.FC<GameGridCardProps> = ({ game, bestScore, size, onPress }) => {
   const scale = useRef(new Animated.Value(1)).current;
+  
+  const isSmall = size < 110;
+  const emojiBoxSize = isSmall ? 38 : 46;
+  const emojiFontSize = isSmall ? 20 : 24;
+  const titleFontSize = isSmall ? 9.5 : 11;
+  const scoreFontSize = isSmall ? 9.5 : 11;
+  const cardPadding = isSmall ? 4 : 8;
 
   const pressIn = () =>
     Animated.spring(scale, {
@@ -31,23 +38,23 @@ export const GameGridCard: React.FC<GameGridCardProps> = ({ game, bestScore, siz
     }).start();
 
   return (
-    <Animated.View style={{ transform: [{ scale }], width: size, marginBottom: 12 }}>
+    <Animated.View style={{ transform: [{ scale }], width: size, marginBottom: 10 }}>
       <Pressable
         onPress={onPress}
         onPressIn={pressIn}
         onPressOut={pressOut}
         style={({ pressed }) => [styles.card, { width: size, opacity: pressed ? 0.92 : 1 }]}
       >
-        <View style={[styles.glowBorder, { backgroundColor: game.gradient[0] + '33' }]} />
-        <View style={[styles.inner, { borderColor: game.accent + '55' }]}>
-          <View style={[styles.emojiBox, { backgroundColor: game.accent + '22' }]}>
-            <Text style={styles.emoji}>{game.emoji}</Text>
+        <View style={[styles.glowBorder, { backgroundColor: game.gradient[0] + '22' }]} />
+        <View style={[styles.inner, { borderColor: game.accent + '33', padding: cardPadding }]}>
+          <View style={[styles.emojiBox, { backgroundColor: game.accent + '15', width: emojiBoxSize, height: emojiBoxSize, borderRadius: isSmall ? 10 : 14 }]}>
+            <Text style={[styles.emoji, { fontSize: emojiFontSize }]}>{game.emoji}</Text>
           </View>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text style={[styles.title, { fontSize: titleFontSize, lineHeight: isSmall ? 12 : 14 }]} numberOfLines={2}>
             {game.title}
           </Text>
-          <View style={[styles.scoreChip, { borderColor: game.accent + '44' }]}>
-            <Text style={[styles.scoreText, { color: game.accent }]}>{bestScore}</Text>
+          <View style={[styles.scoreChip, { borderColor: game.accent + '33', marginTop: isSmall ? 3 : 6 }]}>
+            <Text style={[styles.scoreText, { color: game.accent, fontSize: scoreFontSize }]}>{bestScore}</Text>
           </View>
         </View>
       </Pressable>
@@ -71,43 +78,34 @@ const styles = StyleSheet.create({
     margin: 2,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: 'rgba(10,18,40,0.92)',
+    backgroundColor: 'rgba(9,15,32,0.95)',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
+    justifyContent: 'space-between',
   },
   emojiBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
   emoji: {
-    fontSize: 28,
+    textAlign: 'center',
   },
   title: {
     fontFamily: fonts.body,
-    fontSize: 11,
     fontWeight: '700',
     color: colors.textPrimary,
     textAlign: 'center',
-    letterSpacing: 0.3,
-    lineHeight: 14,
-    minHeight: 28,
+    letterSpacing: 0.2,
+    marginVertical: 2,
   },
   scoreChip: {
-    marginTop: 6,
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingVertical: 1,
+    borderRadius: 6,
     borderWidth: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   scoreText: {
     fontFamily: fonts.display,
-    fontSize: 11,
     fontWeight: '900',
   },
 });
