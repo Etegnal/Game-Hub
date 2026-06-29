@@ -6,70 +6,37 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
-  type ViewStyle,
-  type StyleProp,
+  useWindowDimensions,
 } from 'react-native';
 import { DynamicIsland } from '../components/DynamicIsland';
-import { GameButton } from '../components/GameButton';
 import { GradientText } from '../components/GradientText';
 import { AmbientBackground } from '../components/AmbientBackground';
+import { GameGridCard } from '../components/game/GameGridCard';
+import { GAMES } from '../games/registry';
+import type { GameScreenId, GameScoreKey } from '../games/types';
 import { colors } from '../theme/colors';
 import { fonts, loadWebFonts } from '../theme/typography';
 import { useBodyScrollLayout } from '../utils/webShell';
 
-interface HomeScreenProps {
-  onNavigate: (screen: 'HOME' | 'TAP_GAME' | 'ESCAPE_GAME' | 'COLOR_GAME') => void;
-  highScores: {
-    tapGame: number;
-    escapeGame: number;
-    colorGame: number;
-  };
-}
+const GRID_GAP = 10;
+const COLS = 3;
+const H_PAD = 20;
 
-const GAMES = [
-  {
-    id: 'TAP_GAME' as const,
-    title: 'Dokunma Oyunu',
-    subtitle: 'Hedefleri yakala, reflekslerini test et!',
-    emoji: '🎯',
-    accent: colors.tapGame,
-    variant: 'active' as const,
-  },
-  {
-    id: 'ESCAPE_GAME' as const,
-    title: 'Kaçış Oyunu',
-    subtitle: 'Engellerden sıyrıl, hayatta kal!',
-    emoji: '🕹️',
-    accent: colors.escapeGame,
-    variant: 'locked' as const,
-    badge: 'YAKINDA',
-  },
-  {
-    id: 'COLOR_GAME' as const,
-    title: 'Renk Oyunu',
-    subtitle: 'Doğru renge hızlıca odaklan!',
-    emoji: '🎨',
-    accent: colors.colorGame,
-    variant: 'locked' as const,
-    badge: 'YAKINDA',
-  },
-];
+interface HomeScreenProps {
+  onNavigate: (screen: GameScreenId) => void;
+  highScores: Record<GameScoreKey, number>;
+}
 
 function HomeContent({
   onNavigate,
   highScores,
-}: HomeScreenProps) {
-  const scores = [
-    { label: 'Dokunma', emoji: '🎯', value: highScores.tapGame, accent: colors.tapGame },
-    { label: 'Kaçış', emoji: '🕹️', value: highScores.escapeGame, accent: colors.escapeGame },
-    { label: 'Renk', emoji: '🎨', value: highScores.colorGame, accent: colors.colorGame },
-  ];
-
+  cardSize,
+}: HomeScreenProps & { cardSize: number }) {
   return (
     <>
       <View style={styles.heroSection}>
-        <GradientText size={28}>Eternal Game Hub</GradientText>
-        <Text style={styles.tagline}>Reflekslerini test et · Rekor kır · Dostlarınla yarış</Text>
+        <GradientText size={26}>Eternal Game Hub</GradientText>
+        <Text style={styles.tagline}>7 oyun · Rekor kır · Dostlarınla yarış</Text>
         <View style={styles.heroDivider}>
           <View style={styles.heroLine} />
           <Text style={styles.heroStar}>✦</Text>
@@ -78,42 +45,34 @@ function HomeContent({
       </View>
 
       <Text style={styles.sectionLabel}>OYUNLAR</Text>
-      <View style={styles.buttonContainer}>
-        {GAMES.map((game) => (
-          <GameButton
-            key={game.id}
-            title={game.title}
-            subtitle={game.subtitle}
-            emoji={game.emoji}
-            accentColor={game.accent}
-            variant={game.variant}
-            badge={game.badge}
-            onPress={() => onNavigate(game.id)}
-          />
+      <View style={styles.grid}>
+        {Array.from({ length: Math.ceil(GAMES.length / COLS) }, (_, rowIdx) => (
+          <View key={rowIdx} style={styles.gridRow}>
+            {GAMES.slice(rowIdx * COLS, rowIdx * COLS + COLS).map((game) => (
+              <GameGridCard
+                key={game.id}
+                game={game}
+                bestScore={highScores[game.scoreKey]}
+                size={cardSize}
+                onPress={() => onNavigate(game.id)}
+              />
+            ))}
+          </View>
         ))}
       </View>
 
-      <View style={styles.scoreboard}>
-        <View style={styles.scoreboardHeader}>
-          <Text style={styles.scoreboardIcon}>🏆</Text>
-          <Text style={styles.scoreboardTitle}>Lider Tablosu</Text>
-        </View>
-
-        {scores.map((item, index) => (
+      <View style={styles.leaderboard}>
+        <Text style={styles.leaderTitle}>🏆 Lider Tablosu</Text>
+        {GAMES.map((game, i) => (
           <View
-            key={item.label}
-            style={[styles.scoreRow, index < scores.length - 1 && styles.scoreRowBorder]}
+            key={game.scoreKey}
+            style={[styles.leaderRow, i < GAMES.length - 1 && styles.leaderBorder]}
           >
-            <View style={styles.scoreLeft}>
-              <View style={[styles.scoreEmojiBg, { backgroundColor: item.accent + '22' }]}>
-                <Text style={styles.scoreEmoji}>{item.emoji}</Text>
-              </View>
-              <Text style={styles.scoreLabel}>{item.label}</Text>
-            </View>
-            <View style={[styles.scorePill, { borderColor: item.accent + '55' }]}>
-              <Text style={[styles.scoreValue, { color: item.accent }]}>{item.value}</Text>
-              <Text style={styles.scoreUnit}>puan</Text>
-            </View>
+            <Text style={styles.leaderEmoji}>{game.emoji}</Text>
+            <Text style={styles.leaderName}>{game.title}</Text>
+            <Text style={[styles.leaderScore, { color: game.accent }]}>
+              {highScores[game.scoreKey]}
+            </Text>
           </View>
         ))}
       </View>
@@ -121,34 +80,18 @@ function HomeContent({
   );
 }
 
-interface ScrollableProps {
-  bodyScroll: boolean;
-  children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
-function Scrollable({ bodyScroll, children, style }: ScrollableProps) {
-  if (bodyScroll) {
-    return <View style={[styles.scrollContent, style]}>{children}</View>;
-  }
-
-  return (
-    <ScrollView
-      style={[styles.scrollView, style]}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {children}
-    </ScrollView>
-  );
-}
-
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }) => {
   const bodyScroll = useBodyScrollLayout();
+  const { width } = useWindowDimensions();
+  const cardSize = Math.floor((width - H_PAD * 2 - GRID_GAP * (COLS - 1)) / COLS);
 
   useEffect(() => {
     loadWebFonts();
   }, []);
+
+  const content = (
+    <HomeContent onNavigate={onNavigate} highScores={highScores} cardSize={cardSize} />
+  );
 
   return (
     <SafeAreaView style={[styles.safeArea, bodyScroll && styles.safeAreaBodyScroll]}>
@@ -156,9 +99,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
       <View style={[styles.container, bodyScroll && styles.containerBodyScroll]}>
         <DynamicIsland title="ETERNAL GAME HUB" subtitle="Arcade Collection" badge="v1.0" />
 
-        <Scrollable bodyScroll={bodyScroll}>
-          <HomeContent onNavigate={onNavigate} highScores={highScores} />
-        </Scrollable>
+        {bodyScroll ? (
+          <View style={styles.scrollContent}>{content}</View>
+        ) : (
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {content}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -175,7 +126,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: H_PAD,
     backgroundColor: colors.bg,
   },
   containerBodyScroll: {
@@ -187,9 +138,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     backgroundColor: colors.bg,
-    ...Platform.select({
-      web: { minHeight: 0 },
-    }),
+    ...Platform.select({ web: { minHeight: 0 } }),
   },
   scrollContent: {
     paddingVertical: 8,
@@ -199,7 +148,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    marginVertical: 18,
+    marginVertical: 16,
     paddingHorizontal: 10,
     width: '100%',
   },
@@ -208,14 +157,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginTop: 12,
+    marginTop: 10,
     textAlign: 'center',
-    letterSpacing: 0.3,
   },
   heroDivider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 14,
     width: '70%',
   },
   heroLine: {
@@ -236,95 +184,62 @@ const styles = StyleSheet.create({
     color: colors.accentSoft,
     letterSpacing: 3,
     alignSelf: 'flex-start',
-    marginBottom: 4,
+    marginBottom: 10,
     marginLeft: 4,
-    opacity: 0.85,
     width: '100%',
   },
-  buttonContainer: {
+  grid: {
     width: '100%',
-    maxWidth: 420,
     marginBottom: 20,
   },
-  scoreboard: {
+  gridRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: GRID_GAP,
+  },
+  leaderboard: {
     width: '100%',
-    maxWidth: 420,
     backgroundColor: colors.surfaceSolid,
     borderWidth: 1,
     borderColor: colors.glassBorder,
     borderRadius: 22,
-    padding: 18,
+    padding: 16,
+    marginBottom: 8,
   },
-  scoreboardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.glassBorder,
-  },
-  scoreboardIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  scoreboardTitle: {
+  leaderTitle: {
     fontFamily: fonts.display,
     fontSize: 13,
     fontWeight: '700',
     color: colors.textPrimary,
     letterSpacing: 1,
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.glassBorder,
   },
-  scoreRow: {
+  leaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
-  scoreRowBorder: {
+  leaderBorder: {
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.04)',
   },
-  scoreLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  scoreEmojiBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  scoreEmoji: {
+  leaderEmoji: {
     fontSize: 16,
+    width: 28,
   },
-  scoreLabel: {
+  leaderName: {
+    flex: 1,
     fontFamily: fonts.body,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
   },
-  scorePill: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-  },
-  scoreValue: {
+  leaderScore: {
     fontFamily: fonts.display,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
-    marginRight: 4,
-  },
-  scoreUnit: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textMuted,
-    textTransform: 'uppercase',
   },
 });

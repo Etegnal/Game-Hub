@@ -3,32 +3,31 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Platform } from 'react-native';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { TapGameScreen } from './src/screens/TapGameScreen';
-import { EscapeGameScreen } from './src/screens/EscapeGameScreen';
-import { ColorGameScreen } from './src/screens/ColorGameScreen';
+import { PerfectLockScreen } from './src/screens/games/PerfectLockScreen';
+import { ZigZagScreen } from './src/screens/games/ZigZagScreen';
+import { LaneSwitcherScreen } from './src/screens/games/LaneSwitcherScreen';
+import { QuickMathScreen } from './src/screens/games/QuickMathScreen';
+import { ColorMatchScreen } from './src/screens/games/ColorMatchScreen';
+import { FlappyBasketScreen } from './src/screens/games/FlappyBasketScreen';
+import { ALL_SCORE_KEYS } from './src/games/registry';
+import type { GameScreenId, GameScoreKey } from './src/games/types';
 import { getHighScore } from './src/utils/storage';
 import { isInAppWebView, setupWebShell } from './src/utils/webShell';
 import { colors } from './src/theme/colors';
 
-type Screen = 'HOME' | 'TAP_GAME' | 'ESCAPE_GAME' | 'COLOR_GAME';
+const EMPTY_SCORES = Object.fromEntries(
+  ALL_SCORE_KEYS.map((k) => [k, 0])
+) as Record<GameScoreKey, number>;
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('HOME');
-  const [highScores, setHighScores] = useState({
-    tapGame: 0,
-    escapeGame: 0,
-    colorGame: 0,
-  });
+  const [currentScreen, setCurrentScreen] = useState<GameScreenId>('HOME');
+  const [highScores, setHighScores] = useState<Record<GameScoreKey, number>>(EMPTY_SCORES);
 
-  // Load high scores on start
   const loadScores = async () => {
-    const tapScore = await getHighScore('tapGame');
-    const escapeScore = await getHighScore('escapeGame');
-    const colorScore = await getHighScore('colorGame');
-    setHighScores({
-      tapGame: tapScore,
-      escapeGame: escapeScore,
-      colorGame: colorScore,
-    });
+    const entries = await Promise.all(
+      ALL_SCORE_KEYS.map(async (key) => [key, await getHighScore(key)] as const)
+    );
+    setHighScores(Object.fromEntries(entries) as Record<GameScoreKey, number>);
   };
 
   useEffect(() => {
@@ -36,9 +35,8 @@ export default function App() {
     setupWebShell();
   }, []);
 
-  const navigateTo = (screen: Screen) => {
-    setCurrentScreen(screen);
-  };
+  const navigateTo = (screen: GameScreenId) => setCurrentScreen(screen);
+  const goHome = () => navigateTo('HOME');
 
   return (
     <View style={styles.container}>
@@ -47,16 +45,25 @@ export default function App() {
         <HomeScreen onNavigate={navigateTo} highScores={highScores} />
       )}
       {currentScreen === 'TAP_GAME' && (
-        <TapGameScreen
-          onBack={() => navigateTo('HOME')}
-          onUpdateHighScore={loadScores}
-        />
+        <TapGameScreen onBack={goHome} onUpdateHighScore={loadScores} />
       )}
-      {currentScreen === 'ESCAPE_GAME' && (
-        <EscapeGameScreen onBack={() => navigateTo('HOME')} />
+      {currentScreen === 'PERFECT_LOCK' && (
+        <PerfectLockScreen onBack={goHome} onUpdateHighScore={loadScores} />
       )}
-      {currentScreen === 'COLOR_GAME' && (
-        <ColorGameScreen onBack={() => navigateTo('HOME')} />
+      {currentScreen === 'ZIG_ZAG' && (
+        <ZigZagScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'LANE_SWITCHER' && (
+        <LaneSwitcherScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'QUICK_MATH' && (
+        <QuickMathScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'COLOR_MATCH' && (
+        <ColorMatchScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'FLAPPY_BASKET' && (
+        <FlappyBasketScreen onBack={goHome} onUpdateHighScore={loadScores} />
       )}
     </View>
   );
