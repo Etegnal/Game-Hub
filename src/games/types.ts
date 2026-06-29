@@ -10,7 +10,10 @@ export type GameScreenId =
   | 'KNIFE_HIT'
   | 'BRICK_BREAKER'
   | 'STACKER'
-  | 'CUBE_RUNNER';
+  | 'CUBE_RUNNER'
+  | 'QUIZ'
+  | 'LOGIN'
+  | 'REGISTER';
 
 export type GameScoreKey =
   | 'tapGame'

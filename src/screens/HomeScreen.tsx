@@ -26,13 +26,33 @@ const H_PAD = 20;
 interface HomeScreenProps {
   onNavigate: (screen: GameScreenId) => void;
   highScores: Record<GameScoreKey, number>;
+  currentUser: { username: string } | null;
+  onLogout: () => void;
 }
 
 function HomeContent({
   onNavigate,
   highScores,
   cardSize,
+  currentUser,
 }: HomeScreenProps & { cardSize: number }) {
+  const handleGamePress = (gameId: GameScreenId) => {
+    // Force login to play games so we can track user scores in the database
+    if (!currentUser) {
+      onNavigate('LOGIN');
+    } else {
+      onNavigate(gameId);
+    }
+  };
+
+  const handleQuizPress = () => {
+    if (!currentUser) {
+      onNavigate('LOGIN');
+    } else {
+      onNavigate('QUIZ');
+    }
+  };
+
   return (
     <>
       <View style={styles.heroSection}>
@@ -44,6 +64,21 @@ function HomeContent({
         </View>
       </View>
 
+      {/* Online Quiz Dual Banner */}
+      <TouchableOpacity
+        style={styles.quizBanner}
+        onPress={handleQuizPress}
+        activeOpacity={0.8}
+      >
+        <View style={styles.quizBadge}>
+          <Text style={styles.quizBadgeText}>YENİ</Text>
+        </View>
+        <Text style={styles.quizTitle}>🧠 Canlı Bilgi Yarışması</Text>
+        <Text style={styles.quizSubtitle}>
+          Arkadaşlarınla oda kodu kullanarak canlı düello yap, genel kültürünü yarıştır!
+        </Text>
+      </TouchableOpacity>
+
       <Text style={styles.sectionLabel}>OYUNLAR</Text>
       <View style={styles.grid}>
         {Array.from({ length: Math.ceil(GAMES.length / COLS) }, (_, rowIdx) => (
@@ -54,7 +89,7 @@ function HomeContent({
                 game={game}
                 bestScore={highScores[game.scoreKey]}
                 size={cardSize}
-                onPress={() => onNavigate(game.id)}
+                onPress={() => handleGamePress(game.id)}
               />
             ))}
           </View>
@@ -64,7 +99,12 @@ function HomeContent({
   );
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({
+  onNavigate,
+  highScores,
+  currentUser,
+  onLogout,
+}) => {
   const bodyScroll = useBodyScrollLayout();
   const { width } = useWindowDimensions();
   const cardSize = Math.floor((width - H_PAD * 2 - GRID_GAP * (COLS - 1)) / COLS);
@@ -75,7 +115,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
   }, []);
 
   const content = (
-    <HomeContent onNavigate={onNavigate} highScores={highScores} cardSize={cardSize} />
+    <HomeContent
+      onNavigate={onNavigate}
+      highScores={highScores}
+      cardSize={cardSize}
+      currentUser={currentUser}
+      onLogout={onLogout}
+    />
   );
 
   return (
@@ -87,15 +133,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
         <View style={styles.navbar}>
           <View style={styles.logoContainer}>
             <Text style={styles.infinityLogo}>∞</Text>
-            <Text style={styles.logoText}>ETERNAL</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.trophyButton} 
-            onPress={() => setScoresVisible(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.trophyIcon}>🏆</Text>
-          </TouchableOpacity>
+
+          {/* User Auth Section */}
+          <View style={styles.navRight}>
+            {currentUser ? (
+              <View style={styles.userSection}>
+                <Text style={styles.usernameText} numberOfLines={1}>
+                  👤 {currentUser.username}
+                </Text>
+                <TouchableOpacity
+                  style={styles.logoutButton}
+                  onPress={onLogout}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.logoutIcon}>🚪</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.loginButton}
+                onPress={() => onNavigate('LOGIN')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.loginButtonText}>Giriş Yap</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity 
+              style={styles.trophyButton} 
+              onPress={() => setScoresVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.trophyIcon}>🏆</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {bodyScroll ? (
@@ -131,7 +203,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
                   <Text style={styles.leaderEmoji}>{game.emoji}</Text>
                   <Text style={styles.leaderName}>{game.title}</Text>
                   <Text style={[styles.leaderScore, { color: game.accent }]}>
-                    {highScores[game.scoreKey]}
+                    {highScores[game.scoreKey] || 0}
                   </Text>
                 </View>
               ))}
@@ -180,17 +252,63 @@ const styles = StyleSheet.create({
   infinityLogo: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#00D4FF', // Beautiful neon blue infinity logo
-    marginRight: 8,
+    color: '#00D4FF',
     lineHeight: 32,
     marginTop: -4,
   },
-  logoText: {
-    fontFamily: fonts.display,
-    fontSize: 14,
-    fontWeight: '900',
-    color: colors.textPrimary,
-    letterSpacing: 1.5,
+  navRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: 12,
+    paddingLeft: 10,
+    paddingRight: 6,
+    paddingVertical: 4,
+    marginRight: 10,
+    maxWidth: 160,
+  },
+  usernameText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginRight: 6,
+  },
+  logoutButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({ web: { cursor: 'pointer' } }),
+  },
+  logoutIcon: {
+    fontSize: 11,
+  },
+  loginButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,212,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,212,255,0.3)',
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({ web: { cursor: 'pointer' } }),
+  },
+  loginButtonText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#00D4FF',
   },
   trophyButton: {
     width: 38,
@@ -240,6 +358,46 @@ const styles = StyleSheet.create({
     color: colors.accentSoft,
     fontSize: 10,
     marginHorizontal: 5,
+  },
+  quizBanner: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(139,92,246,0.35)',
+    backgroundColor: 'rgba(139,92,246,0.06)',
+    marginVertical: 15,
+    position: 'relative',
+    overflow: 'hidden',
+    ...Platform.select({ web: { cursor: 'pointer' } }),
+  },
+  quizBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  quizBadgeText: {
+    fontFamily: fonts.body,
+    color: '#FFF',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  quizTitle: {
+    fontFamily: fonts.display,
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '900',
+    marginBottom: 4,
+  },
+  quizSubtitle: {
+    fontFamily: fonts.body,
+    color: '#C084FC',
+    fontSize: 11,
+    lineHeight: 15,
   },
   sectionLabel: {
     fontFamily: fonts.display,

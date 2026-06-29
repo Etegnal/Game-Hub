@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getHighScore, saveHighScore } from '../utils/storage';
+import { syncHighScore } from '../utils/firebase';
 import type { GameScoreKey } from '../games/types';
 
 export function useGameScore(gameKey: GameScoreKey, onUpdateHome?: () => void) {
@@ -19,6 +20,10 @@ export function useGameScore(gameKey: GameScoreKey, onUpdateHome?: () => void) {
   const finishGame = useCallback(
     async (finalScore: number) => {
       const isNew = await saveHighScore(gameKey, finalScore);
+      
+      // Synchronize score with database profile
+      await syncHighScore(gameKey, finalScore);
+
       if (isNew) {
         setHighScore(finalScore);
         setIsNewRecord(true);
