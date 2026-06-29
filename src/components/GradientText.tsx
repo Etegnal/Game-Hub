@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
-import { isAndroidWebView } from '../utils/webShell';
+import { isInAppWebView } from '../utils/webShell';
 
 interface GradientTextProps extends TextProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export const GradientText: React.FC<GradientTextProps> = ({
   size = 32,
   ...rest
 }) => {
-  const useWebGradient = Platform.OS === 'web' && !isAndroidWebView();
+  const useWebGradient = Platform.OS === 'web' && !isInAppWebView();
 
   return (
     <Text

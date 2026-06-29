@@ -6,7 +6,7 @@ import { TapGameScreen } from './src/screens/TapGameScreen';
 import { EscapeGameScreen } from './src/screens/EscapeGameScreen';
 import { ColorGameScreen } from './src/screens/ColorGameScreen';
 import { getHighScore } from './src/utils/storage';
-import { setupWebShell } from './src/utils/webShell';
+import { isInAppWebView, setupWebShell } from './src/utils/webShell';
 import { colors } from './src/theme/colors';
 
 type Screen = 'HOME' | 'TAP_GAME' | 'ESCAPE_GAME' | 'COLOR_GAME';
@@ -64,13 +64,11 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.bg,
-    ...Platform.select({
-      web: {
-        minHeight: '100%',
-        height: '100%',
-      },
-    }),
+    ...(Platform.OS === 'web'
+      ? isInAppWebView()
+        ? { minHeight: '100%' }
+        : { flex: 1, minHeight: '100%', height: '100%' }
+      : { flex: 1 }),
   },
 });

@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
                     request: WebResourceRequest?,
                   ): Boolean = false
                 }
-                loadUrl("https://etegnal.github.io/Game-Hub/")
+                loadUrl("https://etegnal.github.io/Game-Hub/?platform=android-webview")
                 webViewRef = this
               }
             }

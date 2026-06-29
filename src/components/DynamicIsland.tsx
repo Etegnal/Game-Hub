@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
   },
   liveDot: {
     width: 8,
@@ -89,6 +88,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 6,
+    marginRight: 10,
   },
   title: {
     fontFamily: fonts.display,

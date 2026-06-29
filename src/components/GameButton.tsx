@@ -143,7 +143,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 8,
   },
   title: {
     fontFamily: fonts.body,
@@ -172,6 +171,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     borderWidth: 1,
+    marginLeft: 8,
   },
   badgeText: {
     fontSize: 9,
