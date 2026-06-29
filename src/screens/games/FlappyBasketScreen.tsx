@@ -33,6 +33,7 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
   const [phase, setPhase] = useState<'start' | 'play' | 'over'>('start');
   const [ballY, setBallY] = useState(AREA_H / 2);
   const [ballX, setBallX] = useState(60);
+  const [isPlaying, setIsPlaying] = useState(false);
   const vyRef = useRef(0);
   const [hoops, setHoops] = useState<Hoop[]>([]);
   const idRef = useRef(0);
@@ -64,6 +65,14 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
     if (phase !== 'play') return;
     setHoops(spawnHoop([]));
     const loop = () => {
+      if (!isPlaying) {
+        // Floating effect while waiting for first tap
+        const time = Date.now() / 160;
+        setBallY(AREA_H / 2 + Math.sin(time) * 12);
+        frameRef.current = requestAnimationFrame(loop);
+        return;
+      }
+
       vyRef.current += GRAVITY;
       setBallY((y) => {
         const ny = y + vyRef.current;
@@ -79,7 +88,6 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
         if (list.length < 2) list = spawnHoop(list);
         list.forEach((h) => {
           // Check collision with the center of the hoop rim
-          // The rim width is 44px (center is x+22). The backboard is 48px, rim overlap is -4px, rim height is 44px (center is y+66)
           const rimCenterX = h.x + 22;
           const rimCenterY = h.y + 66;
           
@@ -101,7 +109,7 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
-  }, [phase, ballY]);
+  }, [phase, isPlaying, ballY]);
 
   const startGame = () => {
     resetScore();
@@ -110,11 +118,15 @@ export const FlappyBasketScreen: React.FC<Props> = ({ onBack, onUpdateHighScore 
     setBallY(AREA_H / 2);
     setBallX(60);
     setHoops([]);
+    setIsPlaying(false);
     setPhase('play');
   };
 
   const jump = () => {
     if (phase !== 'play') return;
+    if (!isPlaying) {
+      setIsPlaying(true);
+    }
     vyRef.current = JUMP;
   };
 

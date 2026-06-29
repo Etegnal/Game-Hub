@@ -33,7 +33,7 @@ export const ColorMatchScreen: React.FC<Props> = ({ onBack, onUpdateHighScore })
 
   const spawnBall = () => {
     setBallColorIdx(Math.floor(Math.random() * 4));
-    setBallY(-30);
+    setBallY(-150);
   };
 
   const endGame = async () => {
@@ -48,7 +48,7 @@ export const ColorMatchScreen: React.FC<Props> = ({ onBack, onUpdateHighScore })
     spawnBall();
     const loop = () => {
       setBallY((y) => {
-        const speed = 3.6 + scoreRef.current * 0.12; // progressive speed
+        const speed = 1.8 + scoreRef.current * 0.1; // slower, more playable initial speed
         const ny = y + speed;
         if (ny >= 110) {
           const step = Math.round((rotation % 360) / 90) % 4;

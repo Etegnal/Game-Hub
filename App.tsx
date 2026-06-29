@@ -9,6 +9,10 @@ import { LaneSwitcherScreen } from './src/screens/games/LaneSwitcherScreen';
 import { QuickMathScreen } from './src/screens/games/QuickMathScreen';
 import { ColorMatchScreen } from './src/screens/games/ColorMatchScreen';
 import { FlappyBasketScreen } from './src/screens/games/FlappyBasketScreen';
+import { KnifeHitScreen } from './src/screens/games/KnifeHitScreen';
+import { BrickBreakerScreen } from './src/screens/games/BrickBreakerScreen';
+import { StackerScreen } from './src/screens/games/StackerScreen';
+import { CubeRunnerScreen } from './src/screens/games/CubeRunnerScreen';
 import { ALL_SCORE_KEYS } from './src/games/registry';
 import type { GameScreenId, GameScoreKey } from './src/games/types';
 import { getHighScore } from './src/utils/storage';
@@ -64,6 +68,18 @@ export default function App() {
       )}
       {currentScreen === 'FLAPPY_BASKET' && (
         <FlappyBasketScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'KNIFE_HIT' && (
+        <KnifeHitScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'BRICK_BREAKER' && (
+        <BrickBreakerScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'STACKER' && (
+        <StackerScreen onBack={goHome} onUpdateHighScore={loadScores} />
+      )}
+      {currentScreen === 'CUBE_RUNNER' && (
+        <CubeRunnerScreen onBack={goHome} onUpdateHighScore={loadScores} />
       )}
     </View>
   );

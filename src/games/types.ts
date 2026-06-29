@@ -6,7 +6,11 @@ export type GameScreenId =
   | 'LANE_SWITCHER'
   | 'QUICK_MATH'
   | 'COLOR_MATCH'
-  | 'FLAPPY_BASKET';
+  | 'FLAPPY_BASKET'
+  | 'KNIFE_HIT'
+  | 'BRICK_BREAKER'
+  | 'STACKER'
+  | 'CUBE_RUNNER';
 
 export type GameScoreKey =
   | 'tapGame'
@@ -15,7 +19,11 @@ export type GameScoreKey =
   | 'laneSwitcher'
   | 'quickMath'
   | 'colorMatch'
-  | 'flappyBasket';
+  | 'flappyBasket'
+  | 'knifeHit'
+  | 'brickBreaker'
+  | 'stacker'
+  | 'cubeRunner';
 
 export interface GameDefinition {
   id: GameScreenId;

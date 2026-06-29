@@ -65,6 +65,42 @@ export const GAMES: GameDefinition[] = [
     accent: '#FB923C',
     gradient: ['#FB923C', '#EA580C'],
   },
+  {
+    id: 'KNIFE_HIT',
+    scoreKey: 'knifeHit',
+    title: 'Bıçak Fırlat',
+    subtitle: 'Çarpmadan sapla',
+    emoji: '🗡️',
+    accent: '#10B981',
+    gradient: ['#34D399', '#059669'],
+  },
+  {
+    id: 'BRICK_BREAKER',
+    scoreKey: 'brickBreaker',
+    title: 'Tuğla Kırma',
+    subtitle: 'Blokları temizle',
+    emoji: '🧱',
+    accent: '#F43F5E',
+    gradient: ['#FB7185', '#E11D48'],
+  },
+  {
+    id: 'STACKER',
+    scoreKey: 'stacker',
+    title: 'Kule Yapıcı',
+    subtitle: 'Tam üst üste koy',
+    emoji: '🏢',
+    accent: '#3B82F6',
+    gradient: ['#60A5FA', '#1D4ED8'],
+  },
+  {
+    id: 'CUBE_RUNNER',
+    scoreKey: 'cubeRunner',
+    title: 'Küp Koşucu',
+    subtitle: 'Engellerden zıpla',
+    emoji: '🔺',
+    accent: '#C084FC',
+    gradient: ['#C084FC', '#7C3AED'],
+  },
 ];
 
 export const ALL_SCORE_KEYS = GAMES.map((g) => g.scoreKey);
