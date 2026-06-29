@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, Platform } from 'react-native';
 import { DynamicIsland } from '../components/DynamicIsland';
 import { GameButton } from '../components/GameButton';
+import { GradientText } from '../components/GradientText';
+import { AmbientBackground } from '../components/AmbientBackground';
+import { colors } from '../theme/colors';
+import { fonts, loadWebFonts } from '../theme/typography';
 
 interface HomeScreenProps {
   onNavigate: (screen: 'HOME' | 'TAP_GAME' | 'ESCAPE_GAME' | 'COLOR_GAME') => void;
@@ -12,61 +16,102 @@ interface HomeScreenProps {
   };
 }
 
+const GAMES = [
+  {
+    id: 'TAP_GAME' as const,
+    title: 'Dokunma Oyunu',
+    subtitle: 'Hedefleri yakala, reflekslerini test et!',
+    emoji: '🎯',
+    accent: colors.tapGame,
+    variant: 'active' as const,
+  },
+  {
+    id: 'ESCAPE_GAME' as const,
+    title: 'Kaçış Oyunu',
+    subtitle: 'Engellerden sıyrıl, hayatta kal!',
+    emoji: '🕹️',
+    accent: colors.escapeGame,
+    variant: 'locked' as const,
+    badge: 'YAKINDA',
+  },
+  {
+    id: 'COLOR_GAME' as const,
+    title: 'Renk Oyunu',
+    subtitle: 'Doğru renge hızlıca odaklan!',
+    emoji: '🎨',
+    accent: colors.colorGame,
+    variant: 'locked' as const,
+    badge: 'YAKINDA',
+  },
+];
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }) => {
+  useEffect(() => {
+    loadWebFonts();
+  }, []);
+
+  const scores = [
+    { label: 'Dokunma', emoji: '🎯', value: highScores.tapGame, accent: colors.tapGame },
+    { label: 'Kaçış', emoji: '🕹️', value: highScores.escapeGame, accent: colors.escapeGame },
+    { label: 'Renk', emoji: '🎨', value: highScores.colorGame, accent: colors.colorGame },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
+      <AmbientBackground />
       <View style={styles.container}>
-        <DynamicIsland title="REFLEKS LABORATUVARI" subtitle="Mini-Oyun Hub" badge="v1.0" />
+        <DynamicIsland title="ETERNAL GAME HUB" subtitle="Arcade Collection" badge="v1.0" />
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.headerSection}>
-            <Text style={styles.titleEmoji}>⚡</Text>
-            <Text style={styles.mainTitle}>Zamanlama ve Hız</Text>
-            <Text style={styles.tagline}>Reflekslerini test et, rekorlarını arkadaşlarınla paylaş!</Text>
+          <View style={styles.heroSection}>
+            <GradientText size={28}>Eternal Game Hub</GradientText>
+            <Text style={styles.tagline}>Reflekslerini test et · Rekor kır · Dostlarınla yarış</Text>
+            <View style={styles.heroDivider}>
+              <View style={styles.heroLine} />
+              <Text style={styles.heroStar}>✦</Text>
+              <View style={styles.heroLine} />
+            </View>
           </View>
 
-          {/* Buttons Section */}
+          <Text style={styles.sectionLabel}>OYUNLAR</Text>
           <View style={styles.buttonContainer}>
-            <GameButton
-              title="🎯 Dokunma Oyunu"
-              subtitle="Rastgele beliren hedefleri kaçırmadan yakala!"
-              color="#7052FF"
-              onPress={() => onNavigate('TAP_GAME')}
-            />
-            <GameButton
-              title="🕹️ Kaçış Oyunu"
-              subtitle="Yakında - Engellerden sıyrılarak hayatta kal!"
-              color="#D8D3FF"
-              textColor="#7052FF"
-              onPress={() => onNavigate('ESCAPE_GAME')}
-            />
-            <GameButton
-              title="🎨 Renk Oyunu"
-              subtitle="Yakında - Hızlı ve doğru renklere odaklan!"
-              color="#D8D3FF"
-              textColor="#7052FF"
-              onPress={() => onNavigate('COLOR_GAME')}
-            />
+            {GAMES.map((game) => (
+              <GameButton
+                key={game.id}
+                title={game.title}
+                subtitle={game.subtitle}
+                emoji={game.emoji}
+                accentColor={game.accent}
+                variant={game.variant}
+                badge={game.badge}
+                onPress={() => onNavigate(game.id)}
+              />
+            ))}
           </View>
 
-          {/* Scoreboard Section */}
           <View style={styles.scoreboard}>
-            <Text style={styles.scoreboardTitle}>🏆 En Yüksek Skorlar</Text>
-            
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>🎯 Dokunma Oyunu</Text>
-              <Text style={styles.scoreValue}>{highScores.tapGame} Puan</Text>
+            <View style={styles.scoreboardHeader}>
+              <Text style={styles.scoreboardIcon}>🏆</Text>
+              <Text style={styles.scoreboardTitle}>Lider Tablosu</Text>
             </View>
 
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>🕹️ Kaçış Oyunu</Text>
-              <Text style={styles.scoreValue}>{highScores.escapeGame} Puan</Text>
-            </View>
-
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreLabel}>🎨 Renk Oyunu</Text>
-              <Text style={styles.scoreValue}>{highScores.colorGame} Puan</Text>
-            </View>
+            {scores.map((item, index) => (
+              <View
+                key={item.label}
+                style={[styles.scoreRow, index < scores.length - 1 && styles.scoreRowBorder]}
+              >
+                <View style={styles.scoreLeft}>
+                  <View style={[styles.scoreEmojiBg, { backgroundColor: item.accent + '22' }]}>
+                    <Text style={styles.scoreEmoji}>{item.emoji}</Text>
+                  </View>
+                  <Text style={styles.scoreLabel}>{item.label}</Text>
+                </View>
+                <View style={[styles.scorePill, { borderColor: item.accent + '55' }]}>
+                  <Text style={[styles.scoreValue, { color: item.accent }]}>{item.value}</Text>
+                  <Text style={styles.scoreUnit}>puan</Text>
+                </View>
+              </View>
+            ))}
           </View>
         </ScrollView>
       </View>
@@ -77,85 +122,146 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFDF6', // Light pastel yellow
+    backgroundColor: colors.bg,
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    backgroundColor: '#FFFDF6',
   },
   scrollContent: {
-    paddingVertical: 10,
+    paddingVertical: 8,
     alignItems: 'center',
     width: '100%',
+    paddingBottom: 36,
   },
-  headerSection: {
+  heroSection: {
     alignItems: 'center',
-    marginVertical: 20,
-    textAlign: 'center',
-  },
-  titleEmoji: {
-    fontSize: 44,
-    marginBottom: 8,
-  },
-  mainTitle: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#2C2C2C',
-    textAlign: 'center',
+    marginVertical: 18,
+    paddingHorizontal: 10,
   },
   tagline: {
-    fontSize: 13,
-    color: '#7A7A7A',
-    marginTop: 8,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: 12,
     textAlign: 'center',
-    paddingHorizontal: 15,
-    lineHeight: 18,
+    letterSpacing: 0.3,
+  },
+  heroDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    width: '70%',
+    gap: 10,
+  },
+  heroLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.glassBorder,
+  },
+  heroStar: {
+    color: colors.accentSoft,
+    fontSize: 12,
+  },
+  sectionLabel: {
+    fontFamily: fonts.display,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.accentSoft,
+    letterSpacing: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    marginLeft: 4,
+    opacity: 0.85,
   },
   buttonContainer: {
     width: '100%',
-    maxWidth: 400,
-    marginVertical: 15,
+    maxWidth: 420,
+    marginBottom: 20,
   },
   scoreboard: {
     width: '100%',
-    maxWidth: 400,
-    backgroundColor: '#FFF',
-    borderWidth: 2,
-    borderColor: '#E8E8E8',
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 15,
-    marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
+    maxWidth: 420,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.glassBorder,
+    borderRadius: 22,
+    padding: 18,
+    ...Platform.select({
+      web: { backdropFilter: 'blur(10px)' },
+    }),
+  },
+  scoreboardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.glassBorder,
+  },
+  scoreboardIcon: {
+    fontSize: 18,
   },
   scoreboardTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#2C2C2C',
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    paddingBottom: 8,
+    fontFamily: fonts.display,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    letterSpacing: 1,
   },
   scoreRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 6,
+    paddingVertical: 10,
+  },
+  scoreRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.04)',
+  },
+  scoreLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  scoreEmojiBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreEmoji: {
+    fontSize: 16,
   },
   scoreLabel: {
-    fontSize: 13,
+    fontFamily: fonts.body,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#555',
+    color: colors.textSecondary,
+  },
+  scorePill: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   scoreValue: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#7052FF',
+    fontFamily: fonts.display,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  scoreUnit: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textMuted,
+    textTransform: 'uppercase',
   },
 });

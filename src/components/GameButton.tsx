@@ -1,31 +1,36 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, Pressable, Animated, Platform } from 'react-native';
+import { StyleSheet, Text, Pressable, Animated, Platform, View } from 'react-native';
+import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 interface GameButtonProps {
   title: string;
   onPress: () => void;
-  color?: string;
-  textColor?: string;
-  borderColor?: string;
+  accentColor?: string;
   subtitle?: string;
+  emoji?: string;
+  variant?: 'active' | 'locked';
+  badge?: string;
 }
 
 export const GameButton: React.FC<GameButtonProps> = ({
   title,
   onPress,
-  color = '#7052FF', // Purple brand accent
-  textColor = '#FFFDF6', // Pastel light
-  borderColor = 'transparent',
+  accentColor = colors.tapGame,
   subtitle,
+  emoji = '🎮',
+  variant = 'active',
+  badge,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const isLocked = variant === 'locked';
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
-      useNativeDriver: Platform.OS !== 'web', // Native driver is not fully supported on some web setups
-      tension: 100,
-      friction: 5,
+      toValue: 0.97,
+      useNativeDriver: Platform.OS !== 'web',
+      tension: 120,
+      friction: 6,
     }).start();
   };
 
@@ -33,8 +38,8 @@ export const GameButton: React.FC<GameButtonProps> = ({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: Platform.OS !== 'web',
-      tension: 100,
-      friction: 5,
+      tension: 120,
+      friction: 6,
     }).start();
   };
 
@@ -45,16 +50,38 @@ export const GameButton: React.FC<GameButtonProps> = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={({ pressed }) => [
-          styles.button,
+          styles.card,
+          isLocked ? styles.cardLocked : styles.cardActive,
           {
-            backgroundColor: color,
-            borderColor: borderColor,
-            borderWidth: borderColor !== 'transparent' ? 2 : 0,
+            borderColor: isLocked ? colors.glassBorder : accentColor + '55',
+            shadowColor: isLocked ? 'transparent' : accentColor,
+            opacity: pressed ? 0.92 : 1,
           },
         ]}
       >
-        <Text style={[styles.title, { color: textColor }]}>{title}</Text>
-        {subtitle && <Text style={[styles.subtitle, { color: textColor + 'BF' }]}>{subtitle}</Text>}
+        <View style={[styles.iconRing, { borderColor: accentColor + (isLocked ? '33' : '88') }]}>
+          <View style={[styles.iconInner, { backgroundColor: accentColor + (isLocked ? '18' : '28') }]}>
+            <Text style={styles.emoji}>{emoji}</Text>
+          </View>
+        </View>
+
+        <View style={styles.textBlock}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, isLocked && styles.titleLocked]}>{title}</Text>
+            {badge && (
+              <View style={[styles.badge, { backgroundColor: accentColor + '22', borderColor: accentColor + '44' }]}>
+                <Text style={[styles.badgeText, { color: accentColor }]}>{badge}</Text>
+              </View>
+            )}
+          </View>
+          {subtitle && (
+            <Text style={[styles.subtitle, isLocked && styles.subtitleLocked]}>{subtitle}</Text>
+          )}
+        </View>
+
+        <View style={[styles.playDot, { backgroundColor: isLocked ? colors.textMuted : accentColor }]}>
+          <Text style={styles.playArrow}>{isLocked ? '🔒' : '▶'}</Text>
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -63,38 +90,106 @@ export const GameButton: React.FC<GameButtonProps> = ({
 const styles = StyleSheet.create({
   animatedContainer: {
     width: '100%',
-    marginVertical: 8,
+    marginVertical: 7,
   },
-  button: {
+  card: {
     width: '100%',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    // Add neo-brutalist accentuation on web
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    backgroundColor: colors.surface,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
     ...Platform.select({
       web: {
         cursor: 'pointer',
-        transition: 'transform 0.1s ease',
+        backdropFilter: 'blur(12px)',
       },
     }),
   },
+  cardActive: {
+    backgroundColor: 'rgba(10, 22, 48, 0.85)',
+  },
+  cardLocked: {
+    backgroundColor: 'rgba(8, 14, 28, 0.6)',
+    borderStyle: 'dashed',
+  },
+  iconRing: {
+    width: 54,
+    height: 54,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  iconInner: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emoji: {
+    fontSize: 24,
+  },
+  textBlock: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   title: {
+    fontFamily: fonts.body,
     fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
+  titleLocked: {
+    color: colors.textSecondary,
+  },
   subtitle: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.textSecondary,
     marginTop: 4,
-    letterSpacing: 0.3,
+    lineHeight: 16,
+  },
+  subtitleLocked: {
+    color: colors.textMuted,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  playDot: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playArrow: {
+    fontSize: 12,
+    color: colors.textPrimary,
   },
 });

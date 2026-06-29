@@ -39,7 +39,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       {currentScreen === 'HOME' && (
         <HomeScreen onNavigate={navigateTo} highScores={highScores} />
       )}
@@ -62,6 +62,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFDF6', // Match our pastel yellow brand color
+    backgroundColor: '#070B14',
   },
 });
