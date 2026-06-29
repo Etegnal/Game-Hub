@@ -64,9 +64,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 8,
-    ...Platform.select({
-      web: { backdropFilter: 'blur(16px)' },
-    }),
   },
   glowLine: {
     position: 'absolute',

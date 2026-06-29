@@ -62,7 +62,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, highScores }
       <View style={styles.container}>
         <DynamicIsland title="ETERNAL GAME HUB" subtitle="Arcade Collection" badge="v1.0" />
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
           <View style={styles.heroSection}>
             <GradientText size={28}>Eternal Game Hub</GradientText>
             <Text style={styles.tagline}>Reflekslerini test et · Rekor kır · Dostlarınla yarış</Text>
@@ -127,6 +132,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
+    backgroundColor: colors.bg,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: colors.bg,
   },
   scrollContent: {
     paddingVertical: 8,
@@ -183,14 +194,11 @@ const styles = StyleSheet.create({
   scoreboard: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceSolid,
     borderWidth: 1,
     borderColor: colors.glassBorder,
     borderRadius: 22,
     padding: 18,
-    ...Platform.select({
-      web: { backdropFilter: 'blur(10px)' },
-    }),
   },
   scoreboardHeader: {
     flexDirection: 'row',

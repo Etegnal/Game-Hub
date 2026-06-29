@@ -1,9 +1,11 @@
 package com.example.gamehub
 
+import android.graphics.Color
 import android.os.Bundle
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.webkit.WebSettings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -17,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.gamehub.theme.GameHubTheme
 
@@ -36,25 +39,26 @@ class MainActivity : ComponentActivity() {
       }
 
       GameHubTheme {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF070B14)) {
           AndroidView(
             modifier = Modifier
               .fillMaxSize()
               .safeDrawingPadding(),
             factory = { context ->
               WebView(context).apply {
+                setBackgroundColor(Color.parseColor("#070B14"))
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                settings.databaseEnabled = true
                 settings.useWideViewPort = true
                 settings.loadWithOverviewMode = true
                 settings.cacheMode = WebSettings.LOAD_DEFAULT
+                settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                 webViewClient = object : WebViewClient() {
-                  override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    if (url != null) {
-                      view?.loadUrl(url)
-                    }
-                    return true
-                  }
+                  override fun shouldOverrideUrlLoading(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                  ): Boolean = false
                 }
                 loadUrl("https://etegnal.github.io/Game-Hub/")
                 webViewRef = this

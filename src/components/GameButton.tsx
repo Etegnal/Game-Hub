@@ -106,10 +106,7 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 6,
     ...Platform.select({
-      web: {
-        cursor: 'pointer',
-        backdropFilter: 'blur(12px)',
-      },
+      web: { cursor: 'pointer' },
     }),
   },
   cardActive: {
