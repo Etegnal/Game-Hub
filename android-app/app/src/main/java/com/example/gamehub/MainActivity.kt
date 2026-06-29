@@ -1,6 +1,6 @@
 package com.example.gamehub
 
-import android.graphics.Color
+import android.graphics.Color as AndroidColor
 import android.os.Bundle
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
               .safeDrawingPadding(),
             factory = { context ->
               WebView(context).apply {
-                setBackgroundColor(Color.parseColor("#070B14"))
+                setBackgroundColor(AndroidColor.parseColor("#070B14"))
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.databaseEnabled = true
